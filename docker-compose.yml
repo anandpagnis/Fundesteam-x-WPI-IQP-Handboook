@@ -1,0 +1,66 @@
+version: '4.3'
+services:
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=moodle
+      - POSTGRES_USER=moodle
+      - POSTGRES_DB=moodle
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  moodle:
+    image: erseco/alpine-moodle:latest
+    restart: unless-stopped
+    environment:
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US:en
+      SITE_URL: http://10.0.65.145
+#This should be the IP address you set for your raspberry pi the dietpi.txt file. Remove this line once you have corrected this
+      DB_TYPE: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: moodle
+      DB_USER: moodle
+      DB_PASS: moodle
+      DB_PREFIX: mdl_
+      REDIS_HOST: redis
+      REVERSEPROXY: false
+      SSLPROXY: false
+      MOODLE_EMAIL: user@example.com
+      MOODLE_LANGUAGE: en
+      MOODLE_SITENAME: Fundesteam-Site
+      MOODLE_USERNAME: user
+      MOODLE_PASSWORD: fundesteam 
+#This is your moodle username and password - you can remove this line after changing or taking a note of the username and password
+      MOODLE_MAIL_NOREPLY_ADDRESS: noreply@localhost
+      MOODLE_MAIL_PREFIX: "[moodle]"
+      client_max_body_size: 5000M
+      post_max_size: 5000M 
+      upload_max_filesize: 5000M 
+      PRE_CONFIGURE_COMMANDS: |
+        echo 'This is a pre-configure command'
+      POST_CONFIGURE_COMMANDS: |
+        echo 'This is a post-configure command'
+    ports:
+      - 80:8080
+    volumes:
+      - moodledata:/var/www/moodledata
+      - moodlehtml:/var/www/html
+      - /etc/moodle-docker/mbz_files:/backup/moodle_backup/mbz_files
+      - /etc/moodle-docker/config:/var/www/moodle/config
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres: null
+  moodledata: null
+  moodlehtml: null
+
